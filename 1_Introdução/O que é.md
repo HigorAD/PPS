@@ -8,7 +8,8 @@ Cada padrão descreve um problema que ocorre frequentemente em seu ambiente, e e
 **Christopher Alexander**
 
 ## 2. Entendendo os Diagramas
-
+ 
+![Diagrama1](../assets/diagrama1.png)
 
 # Banco de homologação com Flyway
 
