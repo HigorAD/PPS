@@ -1,0 +1,38 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620">
+  <rect width="1200" height="620" fill="#f8fafc"/>
+  <style>
+    .title { font: 700 36px Segoe UI, Arial, sans-serif; fill: #111827; }
+    .group { font: 700 28px Segoe UI, Arial, sans-serif; fill: #111827; }
+    .desc { font: 19px Segoe UI, Arial, sans-serif; fill: #4b5563; }
+    .item { font: 20px Segoe UI, Arial, sans-serif; fill: #1f2937; }
+    .card { fill: white; stroke-width: 3; rx: 22; }
+  </style>
+  <text x="60" y="70" class="title">Mapa inicial dos padrões GoF</text>
+  <rect x="60" y="120" width="330" height="420" class="card" stroke="#2563eb"/>
+  <text x="100" y="175" class="group">Criacionais</text>
+  <text x="100" y="215" class="desc">Como objetos são criados</text>
+  <text x="100" y="275" class="item">• Factory Method</text>
+  <text x="100" y="315" class="item">• Abstract Factory</text>
+  <text x="100" y="355" class="item">• Builder</text>
+  <text x="100" y="395" class="item">• Prototype</text>
+  <text x="100" y="435" class="item">• Singleton</text>
+  <rect x="435" y="120" width="330" height="420" class="card" stroke="#16a34a"/>
+  <text x="475" y="175" class="group">Estruturais</text>
+  <text x="475" y="215" class="desc">Como partes se compõem</text>
+  <text x="475" y="275" class="item">• Adapter</text>
+  <text x="475" y="315" class="item">• Facade</text>
+  <text x="475" y="355" class="item">• Decorator</text>
+  <text x="475" y="395" class="item">• Composite</text>
+  <text x="475" y="435" class="item">• Proxy</text>
+  <text x="475" y="475" class="item">• Bridge, Flyweight</text>
+  <rect x="810" y="120" width="330" height="420" class="card" stroke="#dc2626"/>
+  <text x="850" y="175" class="group">Comportamentais</text>
+  <text x="850" y="215" class="desc">Como objetos colaboram</text>
+  <text x="850" y="275" class="item">• Strategy</text>
+  <text x="850" y="315" class="item">• Observer</text>
+  <text x="850" y="355" class="item">• Command</text>
+  <text x="850" y="395" class="item">• State</text>
+  <text x="850" y="435" class="item">• Iterator</text>
+  <text x="850" y="475" class="item">• Chain, Template...</text>
+  <text x="90" y="585" class="desc">A Aula 1 apresenta o mapa. O aprofundamento acontece ao longo da disciplina.</text>
+</svg>
