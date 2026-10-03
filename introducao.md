@@ -21,6 +21,20 @@ Ao final da disciplina, espera-se que você consiga:
 - refatorar código existente com mais segurança;
 - comunicar decisões de design com vocabulário técnico claro.
 
+
+## Materiais disponíveis
+
+Os materiais estão organizados por aula.
+
+Na pasta `aula0`, está:
+
+- `aula00.md`: revisão de orientação a objetos em Java, com exemplos e exercícios executáveis em `Main.java`.
+
+Na pasta `aula1`, estão:
+
+- `aula01.md`: aula introdutória sobre pensamento de design antes dos padrões;
+- `assets/`: diagramas usados no material da Aula 1.
+
 ## Mensagem central
 
 Um bom projeto de software não é aquele que usa mais padrões.

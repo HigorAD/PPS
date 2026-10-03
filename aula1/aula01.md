@@ -259,6 +259,66 @@ A central não decide mais qual canal usar.
 
 Ela apenas delega o envio ao canal configurado.
 
+> **Versão executável para testar na IDE**
+>
+> Cole em `Main.java` e execute.
+
+```java
+interface CanalNotificacao {
+    void enviar(String destino, String mensagem);
+}
+
+class NotificacaoEmail implements CanalNotificacao {
+    @Override
+    public void enviar(String destino, String mensagem) {
+        System.out.println("SMTP -> " + destino + ": " + mensagem);
+    }
+}
+
+class NotificacaoSms implements CanalNotificacao {
+    @Override
+    public void enviar(String destino, String mensagem) {
+        System.out.println("SMS -> " + destino + ": " + mensagem);
+    }
+}
+
+class NotificacaoPush implements CanalNotificacao {
+    @Override
+    public void enviar(String destino, String mensagem) {
+        System.out.println("PUSH -> " + destino + ": " + mensagem);
+    }
+}
+
+class NotificacaoWhatsApp implements CanalNotificacao {
+    @Override
+    public void enviar(String destino, String mensagem) {
+        System.out.println("WhatsApp -> " + destino + ": " + mensagem);
+    }
+}
+
+class CentralNotificacoes {
+    private final CanalNotificacao canal;
+
+    CentralNotificacoes(CanalNotificacao canal) {
+        this.canal = canal;
+    }
+
+    void notificar(String destino, String mensagem) {
+        canal.enviar(destino, mensagem);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        CentralNotificacoes email = new CentralNotificacoes(new NotificacaoEmail());
+        email.notificar("ana@exemplo.com", "Bem-vinda!");
+
+        CentralNotificacoes whatsapp = new CentralNotificacoes(new NotificacaoWhatsApp());
+        whatsapp.notificar("5551999999999", "Pedido confirmado.");
+    }
+}
+```
+
 ## 1.14 Passo 10: adicionando WhatsApp
 
 ```java
@@ -423,6 +483,66 @@ public class DescontoCupom implements PoliticaDesconto {
 
 A regra fica mais isolada, mas o sistema passa a ter mais classes.
 
+> **Versão executável para testar na IDE**
+>
+> Cole em `Main.java` e execute.
+
+```java
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+interface PoliticaDesconto {
+    BigDecimal aplicar(BigDecimal valor);
+}
+
+class DescontoPix implements PoliticaDesconto {
+    @Override
+    public BigDecimal aplicar(BigDecimal valor) {
+        return valor.multiply(new BigDecimal("0.90"));
+    }
+}
+
+class DescontoCupom implements PoliticaDesconto {
+    @Override
+    public BigDecimal aplicar(BigDecimal valor) {
+        return valor.multiply(new BigDecimal("0.85"));
+    }
+}
+
+class DescontoFidelidade implements PoliticaDesconto {
+    @Override
+    public BigDecimal aplicar(BigDecimal valor) {
+        return valor.multiply(new BigDecimal("0.80"));
+    }
+}
+
+class Caixa {
+    private final PoliticaDesconto desconto;
+
+    Caixa(PoliticaDesconto desconto) {
+        this.desconto = desconto;
+    }
+
+    BigDecimal totalFinal(BigDecimal bruto) {
+        return desconto.aplicar(bruto).setScale(2, RoundingMode.HALF_UP);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        BigDecimal valor = new BigDecimal("100.00");
+
+        Caixa caixaPix = new Caixa(new DescontoPix());
+        Caixa caixaCupom = new Caixa(new DescontoCupom());
+        Caixa caixaFidelidade = new Caixa(new DescontoFidelidade());
+
+        System.out.println("PIX: R$ " + caixaPix.totalFinal(valor));
+        System.out.println("Cupom: R$ " + caixaCupom.totalFinal(valor));
+        System.out.println("Fidelidade: R$ " + caixaFidelidade.totalFinal(valor));
+    }
+}
+```
+
 ## 2.6 Caso B - Exportação de relatórios
 
 ```java
@@ -511,6 +631,59 @@ public class CsvExporter implements Exporter {
 
 Agora o serviço não precisa saber qual formato foi escolhido.
 
+> **Versão executável para testar na IDE**
+>
+> Cole em `Main.java` e execute.
+
+```java
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+interface Exporter {
+    byte[] exportar(List<String> dados);
+}
+
+class PdfExporter implements Exporter {
+    @Override
+    public byte[] exportar(List<String> dados) {
+        String conteudo = "PDF simulado: " + String.join(", ", dados);
+        return conteudo.getBytes(StandardCharsets.UTF_8);
+    }
+}
+
+class CsvExporter implements Exporter {
+    @Override
+    public byte[] exportar(List<String> dados) {
+        String conteudo = String.join(";", dados);
+        return conteudo.getBytes(StandardCharsets.UTF_8);
+    }
+}
+
+class RelatorioService {
+    private final Exporter exporter;
+
+    RelatorioService(Exporter exporter) {
+        this.exporter = exporter;
+    }
+
+    byte[] gerarRelatorio(List<String> dados) {
+        return exporter.exportar(dados);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> dados = List.of("nome", "idade", "cidade");
+
+        RelatorioService relatorioPdf = new RelatorioService(new PdfExporter());
+        RelatorioService relatorioCsv = new RelatorioService(new CsvExporter());
+
+        System.out.println(new String(relatorioPdf.gerarRelatorio(dados), StandardCharsets.UTF_8));
+        System.out.println(new String(relatorioCsv.gerarRelatorio(dados), StandardCharsets.UTF_8));
+    }
+}
+```
+
 ## 2.10 Caso C - Frete
 
 ```java
@@ -572,6 +745,66 @@ public class FreteCorreios implements RegraFrete {
 public class FreteRetirada implements RegraFrete {
     public BigDecimal calcular(BigDecimal valorPedido) {
         return BigDecimal.ZERO;
+    }
+}
+```
+
+> **Versão executável para testar na IDE**
+>
+> Cole em `Main.java` e execute.
+
+```java
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+interface RegraFrete {
+    BigDecimal calcular(BigDecimal valorPedido);
+}
+
+class FreteCorreios implements RegraFrete {
+    @Override
+    public BigDecimal calcular(BigDecimal valorPedido) {
+        return valorPedido.multiply(new BigDecimal("0.12"));
+    }
+}
+
+class FreteTransportadora implements RegraFrete {
+    @Override
+    public BigDecimal calcular(BigDecimal valorPedido) {
+        return valorPedido.multiply(new BigDecimal("0.18"));
+    }
+}
+
+class FreteRetirada implements RegraFrete {
+    @Override
+    public BigDecimal calcular(BigDecimal valorPedido) {
+        return BigDecimal.ZERO;
+    }
+}
+
+class CalculadoraFrete {
+    private final RegraFrete regraFrete;
+
+    CalculadoraFrete(RegraFrete regraFrete) {
+        this.regraFrete = regraFrete;
+    }
+
+    BigDecimal calcular(BigDecimal valorPedido) {
+        return regraFrete.calcular(valorPedido).setScale(2, RoundingMode.HALF_UP);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        BigDecimal pedido = new BigDecimal("250.00");
+
+        CalculadoraFrete correios = new CalculadoraFrete(new FreteCorreios());
+        CalculadoraFrete transportadora = new CalculadoraFrete(new FreteTransportadora());
+        CalculadoraFrete retirada = new CalculadoraFrete(new FreteRetirada());
+
+        System.out.println("Correios: R$ " + correios.calcular(pedido));
+        System.out.println("Transportadora: R$ " + transportadora.calcular(pedido));
+        System.out.println("Retirada: R$ " + retirada.calcular(pedido));
     }
 }
 ```
