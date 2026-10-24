@@ -1,267 +1,102 @@
 ﻿# Padrões de Projeto de Software
+## Aula 01 — Pensamento de design antes dos padrões
 
-## Aula 01 - Pensamento de design antes dos padrões
+**Linguagem:** Java  
+**Ideia central:** antes de escolher um padrão, é preciso reconhecer um problema, propor uma mudança e avaliar se ela compensa.
 
-Java
+## Objetivos de aprendizagem
 
-> **Ideia central:** antes de estudar padrões específicos, vamos aprender a reconhecer problemas de design e a justificar melhorias.
+Ao concluir a aula, o estudante deverá conseguir:
 
-## Organização da aula
+- identificar responsabilidades e pontos de acoplamento em uma classe;
+- distinguir o comportamento estável das partes que podem variar;
+- melhorar um código gradualmente, sem aplicar padrões por obrigação;
+- reconhecer interfaces, composição e polimorfismo em uma solução;
+- conhecer a origem e os três grupos dos padrões GoF;
+- justificar os benefícios e os custos de uma decisão de design.
 
-A aula está organizada em cinco etapas:
+## Roteiro da aula
 
-| Etapa | Tipo | Foco |
-|---:|---|---|
-| 1 | Teoria | Por que padrões existem? |
-| 2 | Exercício | Diagnóstico de código difícil de manter |
-| 3 | Teoria | Padrões, GoF e princípios de design |
-| 4 | Exercício | Proposta de evolução de design |
-| 5 | Finalização | Síntese e preparação para a próxima aula |
+| Etapa | Atividade | Questão orientadora |
+|---|---|---|
+| 1 | Diagnóstico de um problema | Por que um código que funciona pode ser difícil de manter? |
+| 2 | Evolução guiada | Qual a menor mudança que ajuda de verdade? |
+| 3 | Padrões e princípios | Como dar nome às soluções e avaliá-las? |
+| 4 | Exercício | Quando mudar o design, e quando manter a simplicidade? |
+| 5 | Síntese | O que aprendemos antes de estudar padrões específicos? |
 
-A aula alterna explicação, leitura de código, discussão curta, exercício e solução comentada.
+> **Método da disciplina:** observar o problema → identificar o que varia → propor a menor melhoria útil → discutir custos → só então nomear um padrão.
 
-## Como vamos trabalhar
+---
 
-Em vários momentos, o material seguirá este ciclo:
+# Etapa 1 — Identificando um problema de design
 
-| Passo | Ação | Pergunta guia |
-|---:|---|---|
-| 1 | Apresentar um problema | O que o código faz hoje? |
-| 2 | Observar sintomas | Onde a manutenção começa a doer? |
-| 3 | Separar estável e variável | O que muda? O que permanece? |
-| 4 | Propor melhoria | Que separação faria sentido? |
-| 5 | Comparar antes e depois | O que ficou melhor? |
-| 6 | Avaliar consequências | Qual custo foi adicionado? |
+## 1.1 Uma central de notificações
 
-> **Objetivo:** desenvolver raciocínio de design antes de decorar nomes de padrões.
-
-## Linha de raciocínio
-
-![Linha de raciocínio da Aula 1](assets/linha-raciocinio.svg)
-
-<hr>
-
-# Etapa 1
-
-## Teoria: por que padrões existem?
-
-## 1.1 Antes dos padrões, existe um problema
-
-Padrões de projeto não nascem de nomes sofisticados.
-
-Eles nascem de problemas recorrentes no desenvolvimento de software.
-
-> **Exemplos**
-
-- código que funciona, mas é difícil de alterar;
-- regras repetidas em vários lugares;
-- classes com responsabilidades demais;
-- testes que exigem montar quase o sistema inteiro;
-- mudanças pequenas que geram medo de quebrar outras partes.
-
-## 1.2 Pergunta principal da aula
-
-> Como desenhar código que aceita mudanças sem ficar cada vez mais difícil de manter?
-
-Essa pergunta é mais importante do que decorar qualquer padrão.
-
-Antes de escolher uma solução, precisamos entender a dor.
-
-## 1.3 Problema-guia: central de notificações
+Considere a seguinte classe Java:
 
 ```java
-public class CentralNotificacoes {
-
-    public void enviar(String canal, String destino, String mensagem) {
+class CentralNotificacoes {
+    void enviar(String canal, String destino, String mensagem) {
         if (canal.equals("EMAIL")) {
             System.out.println("SMTP -> " + destino + ": " + mensagem);
         } else if (canal.equals("SMS")) {
             System.out.println("SMS -> " + destino + ": " + mensagem);
         } else if (canal.equals("PUSH")) {
             System.out.println("PUSH -> " + destino + ": " + mensagem);
+        } else {
+            throw new IllegalArgumentException("Canal não reconhecido.");
         }
     }
 }
 ```
 
-Esse código pode estar correto.
+**O código funciona.** Um `if` não é um problema por si só. Agora imagine que cada canal passe a exigir validação própria, integração com serviço externo, tratamento de falhas e tentativas de reenvio.
 
-A pergunta é: **como ele se comporta quando muda?**
+**Questões para discussão:**
 
-## 1.4 Mudanças prováveis
+1. Quantos motivos diferentes podem levar a uma alteração nessa classe?
+2. Onde seria implementado um novo canal, como WhatsApp?
+3. Como testar somente o envio por SMS?
+4. Se o sistema continuar pequeno, essa implementação ainda pode ser aceitável?
 
-Imagine que novos requisitos aparecem:
+## 1.2 Separando o estável do variável
 
-- adicionar WhatsApp;
-- validar destinatários de formas diferentes;
-- registrar falhas de envio;
-- reenviar mensagens com erro;
-- enviar por mais de um canal;
-- testar cada canal isoladamente.
-
-O problema não é o `if` existir.
-
-O problema é ele concentrar decisões que podem crescer.
-
-## 1.5 Passo 1: entender o comportamento atual
-
-O método `enviar` faz três coisas ao mesmo tempo:
-
-1. recebe a solicitação de envio;
-2. decide qual canal será usado;
-3. executa a lógica específica do canal.
-
-Quando uma classe acumula decisões diferentes, ela ganha mais motivos para mudar.
-
-## 1.6 Passo 2: separar estável e variável
-
-Na central de notificações:
-
-Parte mais estável:
-
-- existe uma mensagem;
-- existe um destino;
-- o sistema precisa enviar a mensagem.
-
-> **Parte variável**
-
-- o canal usado;
-- a forma de validar o destino;
-- a forma de integrar com cada serviço;
-- a forma de tratar erro em cada canal.
-
-## 1.7 Passo 3: identificar sintomas
-
-| Sintoma | Como aparece no exemplo |
+| Mais estável | Variável |
 |---|---|
-| Rigidez | Novo canal exige editar a central. |
-| Fragilidade | Alterar um canal pode afetar os demais. |
-| Imobilidade | A lógica de e-mail fica presa dentro da central. |
-| Viscosidade | Copiar mais um `else if` parece mais fácil que reorganizar. |
+| Solicitar o envio de uma mensagem | Como cada canal realiza o envio |
+| Informar destino e mensagem | Validação do destinatário |
+| Obter um resultado de envio | Integração e tratamento de falhas |
 
-Os sintomas indicam que o desenho pode ficar caro no futuro.
+**Diagnóstico:** a mesma classe seleciona o canal e implementa detalhes dos canais. Se esses detalhes crescerem, ela passará a ter muitos motivos para mudar.
 
-## 1.8 Passo 4: primeira melhoria simples
+## 1.3 Primeira opção: não acrescentar abstrações
 
-Antes de pensar em padrão, podemos melhorar a legibilidade separando métodos.
+Uma melhoria imediata seria extrair métodos como `enviarEmail(...)` e `enviarSms(...)` na própria classe. A leitura melhora, porém a central continua responsável por todos os canais. Essa opção pode ser suficiente em um programa pequeno.
 
-```java
-public class CentralNotificacoes {
+> **Decisão importante:** nem toda repetição ou condição justifica uma interface. Primeiro avalie a frequência e a complexidade das mudanças.
 
-    public void enviar(String canal, String destino, String mensagem) {
-        if (canal.equals("EMAIL")) {
-            enviarEmail(destino, mensagem);
-        } else if (canal.equals("SMS")) {
-            enviarSms(destino, mensagem);
-        } else if (canal.equals("PUSH")) {
-            enviarPush(destino, mensagem);
-        }
-    }
-}
-```
+---
 
-Isso melhora a leitura, mas ainda não resolve a rigidez.
+# Etapa 2 — Evoluindo o código somente quando necessário
 
-## 1.9 Passo 5: métodos privados ajudam, mas não bastam
+## 2.1 Quando cada canal cresce, um contrato pode ajudar
+
+Suponha que os canais tenham regras independentes e possam ser acrescentados ao longo do tempo. Podemos criar uma interface:
 
 ```java
-private void enviarEmail(String destino, String mensagem) {
-    System.out.println("SMTP -> " + destino + ": " + mensagem);
-}
-
-private void enviarSms(String destino, String mensagem) {
-    System.out.println("SMS -> " + destino + ": " + mensagem);
-}
-
-private void enviarPush(String destino, String mensagem) {
-    System.out.println("PUSH -> " + destino + ": " + mensagem);
-}
-```
-
-A classe ficou mais organizada.
-
-Mas a central continua conhecendo todos os canais.
-
-## 1.10 Passo 6: criar um contrato para o que varia
-
-Se o canal é a parte variável, podemos representar essa variação por um contrato.
-
-```java
-public interface CanalNotificacao {
+interface CanalNotificacao {
     void enviar(String destino, String mensagem);
 }
 ```
 
-Esse contrato diz:
+**Leitura:** qualquer classe que implemente `CanalNotificacao` deve oferecer o método `enviar(...)`.
 
-> qualquer canal precisa saber enviar uma mensagem para um destino.
+Cada canal implementa esse contrato e a central deixa de conhecer seus detalhes. Para não repetir várias versões intermediárias, vamos diretamente ao exemplo executável.
 
-Ainda não precisamos nomear padrão.
+## 2.2 Exemplo executável — interface e composição
 
-Estamos apenas separando uma variação.
-
-## 1.11 Passo 7: mover um canal para sua própria classe
-
-```java
-public class NotificacaoEmail implements CanalNotificacao {
-
-    @Override
-    public void enviar(String destino, String mensagem) {
-        System.out.println("SMTP -> " + destino + ": " + mensagem);
-    }
-}
-```
-
-A regra de e-mail agora tem um lugar próprio.
-
-Ela pode crescer, validar dados e ser testada sem misturar SMS e push.
-
-## 1.12 Passo 8: mover os outros canais
-
-```java
-public class NotificacaoSms implements CanalNotificacao {
-
-    @Override
-    public void enviar(String destino, String mensagem) {
-        System.out.println("SMS -> " + destino + ": " + mensagem);
-    }
-}
-
-public class NotificacaoPush implements CanalNotificacao {
-
-    @Override
-    public void enviar(String destino, String mensagem) {
-        System.out.println("PUSH -> " + destino + ": " + mensagem);
-    }
-}
-```
-
-Agora cada canal tem uma responsabilidade mais clara.
-
-## 1.13 Passo 9: a central depende do contrato
-
-```java
-public class CentralNotificacoes {
-
-    private final CanalNotificacao canal;
-
-    public CentralNotificacoes(CanalNotificacao canal) {
-        this.canal = canal;
-    }
-
-    public void notificar(String destino, String mensagem) {
-        canal.enviar(destino, mensagem);
-    }
-}
-```
-
-A central não decide mais qual canal usar.
-
-Ela apenas delega o envio ao canal configurado.
-
-> **Versão executável para testar na IDE**
->
-> Cole em `Main.java` e execute.
+Crie um arquivo `Main.java` e execute o código completo:
 
 ```java
 interface CanalNotificacao {
@@ -282,20 +117,6 @@ class NotificacaoSms implements CanalNotificacao {
     }
 }
 
-class NotificacaoPush implements CanalNotificacao {
-    @Override
-    public void enviar(String destino, String mensagem) {
-        System.out.println("PUSH -> " + destino + ": " + mensagem);
-    }
-}
-
-class NotificacaoWhatsApp implements CanalNotificacao {
-    @Override
-    public void enviar(String destino, String mensagem) {
-        System.out.println("WhatsApp -> " + destino + ": " + mensagem);
-    }
-}
-
 class CentralNotificacoes {
     private final CanalNotificacao canal;
 
@@ -310,386 +131,98 @@ class CentralNotificacoes {
 
 public class Main {
     public static void main(String[] args) {
-        CentralNotificacoes email = new CentralNotificacoes(new NotificacaoEmail());
+        CentralNotificacoes email =
+                new CentralNotificacoes(new NotificacaoEmail());
+        CentralNotificacoes sms =
+                new CentralNotificacoes(new NotificacaoSms());
+
         email.notificar("ana@exemplo.com", "Bem-vinda!");
-
-        CentralNotificacoes whatsapp = new CentralNotificacoes(new NotificacaoWhatsApp());
-        whatsapp.notificar("5551999999999", "Pedido confirmado.");
+        sms.notificar("11999999999", "Pedido confirmado.");
     }
 }
 ```
 
-## 1.14 Passo 10: adicionando WhatsApp
+**Saída esperada:**
 
-```java
-public class NotificacaoWhatsApp implements CanalNotificacao {
-
-    @Override
-    public void enviar(String destino, String mensagem) {
-        System.out.println("WhatsApp -> " + destino + ": " + mensagem);
-    }
-}
+```text
+SMTP -> ana@exemplo.com: Bem-vinda!
+SMS -> 11999999999: Pedido confirmado.
 ```
 
-O novo canal entra como classe nova.
+## 2.3 Entendendo o que mudou
 
-A central não precisa mudar.
+1. `CanalNotificacao` representa a capacidade comum de enviar mensagens.
+2. `NotificacaoEmail` e `NotificacaoSms` implementam essa capacidade de maneiras diferentes.
+3. `CentralNotificacoes` recebe um objeto pronto no construtor: isso é **injeção de dependência**.
+4. O campo `canal` tem tipo de interface: a central não depende de um canal específico.
+5. `canal.enviar(...)` usa **polimorfismo**: o comportamento depende do objeto efetivamente recebido.
+6. A central **usa** um canal em vez de **herdar** de um canal: isso é composição.
 
-Esse é um exemplo de evolução de design orientada pela dor observada.
+**E se precisarmos de WhatsApp?** Podemos criar `NotificacaoWhatsApp implements CanalNotificacao` e fornecê-la à central. Não é necessário editar `CentralNotificacoes`; o local onde as dependências são montadas deverá escolher o novo canal.
 
-## 1.15 O que ganhamos e o que pagamos?
+## 2.4 O que ganhamos e o que pagamos?
 
-> **Ganhamos**
+| Ganhos | Custos |
+|---|---|
+| Canais podem evoluir e ser testados isoladamente | Há uma interface e mais classes |
+| A central não precisa conhecer implementações concretas | A execução tem uma chamada indireta |
+| Novos canais podem ser introduzidos sem editar a central | Outra parte do programa deve escolher e construir o canal |
 
-- canais mais isolados;
-- testes mais focados;
-- menor necessidade de editar a central;
-- nomes mais próximos das responsabilidades.
+**Conclusão:** para canais com evolução independente, a solução pode valer a pena. Para dois `println` estáveis, a versão com `if` provavelmente é suficiente.
 
-> **Pagamos**
+> O design se aproxima do padrão comportamental **Strategy**, que será aprofundado em outra aula. Aqui nosso foco é entender a motivação da mudança, não estudar esse padrão formalmente.
 
-- mais classes;
-- mais indireção;
-- necessidade de decidir onde o canal será escolhido.
+---
 
-Toda melhoria de design tem custo.
+# Etapa 3 — O que são padrões de projeto?
 
-## 1.16 Importante
+## 3.1 Conceito
 
-A solução anterior lembra um padrão comportamental chamado **Strategy**.
+Um **padrão de projeto** descreve uma solução reutilizável para um problema recorrente de design de software. Não é uma implementação obrigatória nem uma receita pronta. Seu estudo considera **contexto, problema, estrutura da solução e consequências**.
 
-Mas nesta aula o ponto principal não é decorar Strategy.
+Os padrões clássicos foram catalogados por Erich Gamma, Richard Helm, Ralph Johnson e John Vlissides no livro *Design Patterns: Elements of Reusable Object-Oriented Software*. Os autores ficaram conhecidos como **Gang of Four (GoF)**.
 
-O ponto principal é entender o caminho:
+## 3.2 Três famílias de padrões GoF
 
-1. observar mudança provável;
-2. identificar variação;
-3. separar responsabilidades;
-4. avaliar custo da solução.
+| Grupo | Questão central | Exemplos |
+|---|---|---|
+| Criacionais | Como decidir ou organizar a criação de objetos? | Factory Method, Abstract Factory, Builder, Prototype, Singleton |
+| Estruturais | Como compor classes e objetos? | Adapter, Decorator, Facade, Composite, Proxy |
+| Comportamentais | Como distribuir e variar comportamentos? | Strategy, Observer, Command, State, Iterator |
 
-O nome do padrão vem depois do raciocínio.
+Nesta aula os nomes são apenas um **mapa**. A próxima aula começa pelos criacionais.
 
-<hr>
+## 3.3 Princípios que orientam as decisões
 
-# Etapa 2
+- **Responsabilidade:** uma classe deve ter um propósito compreensível e poucos motivos independentes para mudar.
+- **Separar o que varia:** isolar a parte com evolução própria, quando isso simplifica a manutenção.
+- **Depender de abstrações quando útil:** receber uma interface pode evitar dependência direta de classes concretas.
+- **Preferir composição quando adequada:** montar objetos por colaboração costuma facilitar a troca de comportamentos; herança continua útil quando há uma relação de subtipo coerente.
+- **Avaliar o custo:** novas classes e indireções só são justificadas pelos benefícios obtidos.
 
-## Exercício: diagnosticar código difícil de manter
+### SOLID: vocabulário inicial
 
-## 2.1 Exercício 1 - Diagnóstico em grupos
+| Sigla | Princípio | Ideia introdutória |
+|---|---|---|
+| S | Single Responsibility | Responsabilidade e motivo de mudança |
+| O | Open/Closed | Estender comportamentos sem reescrever partes estáveis |
+| L | Liskov Substitution | Subtipos devem respeitar o contrato esperado |
+| I | Interface Segregation | Contratos específicos em vez de interfaces excessivas |
+| D | Dependency Inversion | Componentes de alto nível não devem depender de detalhes concretos |
 
-Escolha um dos casos:
+Não é necessário dominar todos os princípios nesta primeira aula; voltaremos a eles ao estudar os padrões.
 
-1. cálculo de descontos;
-2. exportação de relatórios;
-3. cálculo de frete.
+---
 
-Para o caso escolhido, responda:
+# Etapa 4 — Exercício de diagnóstico e decisão
 
-- o que está estável?
-- o que varia?
-- que mudança futura é provável?
-- que sintomas aparecem?
-- o código atual ainda é suficiente?
-
-## 2.2 Caso A - Descontos
-
-```java
-public class Caixa {
-
-    public BigDecimal totalFinal(BigDecimal bruto, String tipoDesconto) {
-        if (tipoDesconto.equals("PIX")) {
-            return bruto.multiply(new BigDecimal("0.90"));
-        } else if (tipoDesconto.equals("CUPOM")) {
-            return bruto.multiply(new BigDecimal("0.85"));
-        } else if (tipoDesconto.equals("FIDELIDADE")) {
-            return bruto.multiply(new BigDecimal("0.80"));
-        }
-
-        return bruto;
-    }
-}
-```
-
-## 2.3 Solução comentada do Caso A - Diagnóstico
-
-> **Parte estável**
-
-- receber um valor bruto;
-- calcular um valor final.
-
-> **Parte variável**
-
-- a política de desconto.
-
-> **Mudanças prováveis**
-
-- novo tipo de desconto;
-- combinação de descontos;
-- desconto por campanha;
-- desconto por perfil do cliente.
-
-> **Sintoma principal**
-
-- rigidez: cada novo desconto altera a classe `Caixa`.
-
-## 2.4 Caso A - Uma possível evolução
-
-Criar um contrato para desconto.
-
-```java
-public interface PoliticaDesconto {
-    BigDecimal aplicar(BigDecimal valor);
-}
-```
-
-A classe `Caixa` poderia depender desse contrato.
-
-```java
-public class Caixa {
-
-    private final PoliticaDesconto desconto;
-
-    public Caixa(PoliticaDesconto desconto) {
-        this.desconto = desconto;
-    }
-
-    public BigDecimal totalFinal(BigDecimal bruto) {
-        return desconto.aplicar(bruto);
-    }
-}
-```
-
-## 2.5 Caso A - Implementações possíveis
-
-```java
-public class DescontoPix implements PoliticaDesconto {
-
-    @Override
-    public BigDecimal aplicar(BigDecimal valor) {
-        return valor.multiply(new BigDecimal("0.90"));
-    }
-}
-```
-
-```java
-public class DescontoCupom implements PoliticaDesconto {
-
-    @Override
-    public BigDecimal aplicar(BigDecimal valor) {
-        return valor.multiply(new BigDecimal("0.85"));
-    }
-}
-```
-
-A regra fica mais isolada, mas o sistema passa a ter mais classes.
-
-> **Versão executável para testar na IDE**
->
-> Cole em `Main.java` e execute.
+## 4.1 Situação: cálculo de frete
 
 ```java
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
-interface PoliticaDesconto {
-    BigDecimal aplicar(BigDecimal valor);
-}
-
-class DescontoPix implements PoliticaDesconto {
-    @Override
-    public BigDecimal aplicar(BigDecimal valor) {
-        return valor.multiply(new BigDecimal("0.90"));
-    }
-}
-
-class DescontoCupom implements PoliticaDesconto {
-    @Override
-    public BigDecimal aplicar(BigDecimal valor) {
-        return valor.multiply(new BigDecimal("0.85"));
-    }
-}
-
-class DescontoFidelidade implements PoliticaDesconto {
-    @Override
-    public BigDecimal aplicar(BigDecimal valor) {
-        return valor.multiply(new BigDecimal("0.80"));
-    }
-}
-
-class Caixa {
-    private final PoliticaDesconto desconto;
-
-    Caixa(PoliticaDesconto desconto) {
-        this.desconto = desconto;
-    }
-
-    BigDecimal totalFinal(BigDecimal bruto) {
-        return desconto.aplicar(bruto).setScale(2, RoundingMode.HALF_UP);
-    }
-}
-
-public class Main {
-    public static void main(String[] args) {
-        BigDecimal valor = new BigDecimal("100.00");
-
-        Caixa caixaPix = new Caixa(new DescontoPix());
-        Caixa caixaCupom = new Caixa(new DescontoCupom());
-        Caixa caixaFidelidade = new Caixa(new DescontoFidelidade());
-
-        System.out.println("PIX: R$ " + caixaPix.totalFinal(valor));
-        System.out.println("Cupom: R$ " + caixaCupom.totalFinal(valor));
-        System.out.println("Fidelidade: R$ " + caixaFidelidade.totalFinal(valor));
-    }
-}
-```
-
-## 2.6 Caso B - Exportação de relatórios
-
-```java
-public class RelatorioService {
-
-    private final PdfExporter exporter = new PdfExporter();
-
-    public byte[] gerarRelatorio(List<String> dados) {
-        return exporter.exportar(dados);
-    }
-}
-```
-
-> **Perguntas**
-
-- e se amanhã houver CSV?
-- e se depois houver XLSX?
-- o serviço deveria conhecer diretamente `PdfExporter`?
-
-## 2.7 Solução comentada do Caso B - Diagnóstico
-
-> **Parte estável**
-
-- gerar um relatório a partir de dados.
-
-> **Parte variável**
-
-- o formato de saída.
-
-> **Mudanças prováveis**
-
-- PDF;
-- CSV;
-- XLSX;
-- HTML;
-- envio para API externa.
-
-> **Sintoma principal**
-
-- acoplamento direto a uma implementação concreta.
-
-## 2.8 Caso B - Uma possível evolução
-
-Criar um contrato para exportação.
-
-```java
-public interface Exporter {
-    byte[] exportar(List<String> dados);
-}
-```
-
-Fazer o serviço depender do contrato.
-
-```java
-public class RelatorioService {
-
-    private final Exporter exporter;
-
-    public RelatorioService(Exporter exporter) {
-        this.exporter = exporter;
-    }
-
-    public byte[] gerarRelatorio(List<String> dados) {
-        return exporter.exportar(dados);
-    }
-}
-```
-
-## 2.9 Caso B - Implementações possíveis
-
-```java
-public class PdfExporter implements Exporter {
-    public byte[] exportar(List<String> dados) {
-        return new byte[0];
-    }
-}
-```
-
-```java
-public class CsvExporter implements Exporter {
-    public byte[] exportar(List<String> dados) {
-        return String.join(";", dados).getBytes();
-    }
-}
-```
-
-Agora o serviço não precisa saber qual formato foi escolhido.
-
-> **Versão executável para testar na IDE**
->
-> Cole em `Main.java` e execute.
-
-```java
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-interface Exporter {
-    byte[] exportar(List<String> dados);
-}
-
-class PdfExporter implements Exporter {
-    @Override
-    public byte[] exportar(List<String> dados) {
-        String conteudo = "PDF simulado: " + String.join(", ", dados);
-        return conteudo.getBytes(StandardCharsets.UTF_8);
-    }
-}
-
-class CsvExporter implements Exporter {
-    @Override
-    public byte[] exportar(List<String> dados) {
-        String conteudo = String.join(";", dados);
-        return conteudo.getBytes(StandardCharsets.UTF_8);
-    }
-}
-
-class RelatorioService {
-    private final Exporter exporter;
-
-    RelatorioService(Exporter exporter) {
-        this.exporter = exporter;
-    }
-
-    byte[] gerarRelatorio(List<String> dados) {
-        return exporter.exportar(dados);
-    }
-}
-
-public class Main {
-    public static void main(String[] args) {
-        List<String> dados = List.of("nome", "idade", "cidade");
-
-        RelatorioService relatorioPdf = new RelatorioService(new PdfExporter());
-        RelatorioService relatorioCsv = new RelatorioService(new CsvExporter());
-
-        System.out.println(new String(relatorioPdf.gerarRelatorio(dados), StandardCharsets.UTF_8));
-        System.out.println(new String(relatorioCsv.gerarRelatorio(dados), StandardCharsets.UTF_8));
-    }
-}
-```
-
-## 2.10 Caso C - Frete
-
-```java
-public class CalculadoraFrete {
-
-    public BigDecimal calcular(String tipo, BigDecimal valorPedido) {
+class CalculadoraFrete {
+    BigDecimal calcular(String tipo, BigDecimal valorPedido) {
         if (tipo.equals("CORREIOS")) {
             return valorPedido.multiply(new BigDecimal("0.12"));
         } else if (tipo.equals("TRANSPORTADORA")) {
@@ -697,512 +230,53 @@ public class CalculadoraFrete {
         } else if (tipo.equals("RETIRADA")) {
             return BigDecimal.ZERO;
         }
-
-        throw new IllegalArgumentException("Tipo de frete inválido");
+        throw new IllegalArgumentException("Tipo de frete inválido.");
     }
 }
 ```
 
-## 2.11 Solução comentada do Caso C - Diagnóstico
-
-> **Parte estável**
-
-- calcular o valor do frete.
-
-> **Parte variável**
-
-- a regra de cálculo.
-
-> **Mudanças prováveis**
-
-- frete por região;
-- frete por peso;
-- campanha de frete grátis;
-- integração com transportadora externa.
+**Respondam:**
 
-> **Conclusão**
+1. Qual é a responsabilidade da classe?
+2. O que permanece estável e o que varia?
+3. Quando manter o `if` seria uma decisão razoável?
+4. O que mudaria se cada modalidade consultasse APIs externas, tabelas por CEP e regras de prazo?
+5. Se fosse criada uma interface `RegraFrete`, quem escolheria a implementação?
+6. Escrevam uma decisão de design com **problema, proposta, benefício, custo e conclusão**.
 
-- se as regras forem simples e estáveis, o `if` pode bastar;
-- se as regras crescerem, separar o cálculo pode valer a pena.
+## 4.2 Correção comentada (referência)
 
-## 2.12 Caso C - Uma possível evolução
+**Problema:** hoje a escolha e as três fórmulas estão concentradas na calculadora. Isso não é necessariamente ruim.
 
-```java
-public interface RegraFrete {
-    BigDecimal calcular(BigDecimal valorPedido);
-}
-```
+**Proposta:** manter o `if` enquanto as regras forem estáveis e pequenas. Caso as modalidades ganhem integrações e regras independentes, considerar uma interface `RegraFrete`, implementações específicas e composição na calculadora.
 
-```java
-public class FreteCorreios implements RegraFrete {
-    public BigDecimal calcular(BigDecimal valorPedido) {
-        return valorPedido.multiply(new BigDecimal("0.12"));
-    }
-}
-```
+**Benefícios:** testes por modalidade, isolamento de integrações e menos alterações na calculadora.
 
-```java
-public class FreteRetirada implements RegraFrete {
-    public BigDecimal calcular(BigDecimal valorPedido) {
-        return BigDecimal.ZERO;
-    }
-}
-```
+**Custos:** mais classes, configuração das dependências e necessidade de saber quem escolhe a implementação.
 
-> **Versão executável para testar na IDE**
->
-> Cole em `Main.java` e execute.
+**Conclusão:** a decisão depende do cenário; a solução com mais classes não é automaticamente melhor.
 
-```java
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+> **Registro curto (modelo de decisão):** Contexto → Alternativas → Escolha → Benefícios → Custos → Condições para rever a escolha.
 
-interface RegraFrete {
-    BigDecimal calcular(BigDecimal valorPedido);
-}
+---
 
-class FreteCorreios implements RegraFrete {
-    @Override
-    public BigDecimal calcular(BigDecimal valorPedido) {
-        return valorPedido.multiply(new BigDecimal("0.12"));
-    }
-}
+# Etapa 5 — Síntese e preparação para a Aula 2
 
-class FreteTransportadora implements RegraFrete {
-    @Override
-    public BigDecimal calcular(BigDecimal valorPedido) {
-        return valorPedido.multiply(new BigDecimal("0.18"));
-    }
-}
+## 5.1 O que fica desta aula
 
-class FreteRetirada implements RegraFrete {
-    @Override
-    public BigDecimal calcular(BigDecimal valorPedido) {
-        return BigDecimal.ZERO;
-    }
-}
+- Código funcional pode ter problemas de manutenção, mas simplicidade também é uma qualidade.
+- Interfaces e polimorfismo podem ajudar a separar responsabilidades; também têm custos.
+- Padrões de projeto são respostas a problemas recorrentes, não obrigações.
+- Antes de introduzir abstrações, precisamos justificar **qual mudança provável** elas tornam mais fácil.
 
-class CalculadoraFrete {
-    private final RegraFrete regraFrete;
+## 5.2 Perguntas de fechamento
 
-    CalculadoraFrete(RegraFrete regraFrete) {
-        this.regraFrete = regraFrete;
-    }
+1. Por que nem todo `if` deve ser substituído por classes?
+2. Qual problema a interface resolveu na central de notificações?
+3. O que foi ganho e que custo foi introduzido?
+4. Quais são os três grupos de padrões GoF?
+5. Que sinais justificam refatorar uma implementação simples?
 
-    BigDecimal calcular(BigDecimal valorPedido) {
-        return regraFrete.calcular(valorPedido).setScale(2, RoundingMode.HALF_UP);
-    }
-}
+## 5.3 Ponte para a Aula 2
 
-public class Main {
-    public static void main(String[] args) {
-        BigDecimal pedido = new BigDecimal("250.00");
-
-        CalculadoraFrete correios = new CalculadoraFrete(new FreteCorreios());
-        CalculadoraFrete transportadora = new CalculadoraFrete(new FreteTransportadora());
-        CalculadoraFrete retirada = new CalculadoraFrete(new FreteRetirada());
-
-        System.out.println("Correios: R$ " + correios.calcular(pedido));
-        System.out.println("Transportadora: R$ " + transportadora.calcular(pedido));
-        System.out.println("Retirada: R$ " + retirada.calcular(pedido));
-    }
-}
-```
-
-<hr>
-
-# Etapa 3
-
-## Teoria: padrões, GoF e princípios de design
-
-## 3.1 O que é um padrão de projeto?
-
-Um padrão de projeto é uma solução conhecida para um problema recorrente de design.
-
-Ele descreve:
-
-- o contexto do problema;
-- a estrutura geral da solução;
-- os papéis envolvidos;
-- os benefícios;
-- os custos.
-
-Padrão não é receita automática.
-
-## 3.2 Padrão não é código pronto
-
-Um padrão não diz:
-
-> "Copie estas classes exatamente."
-
-Ele diz algo mais próximo de:
-
-> "Quando este tipo de problema aparecer, esta organização de responsabilidades costuma ajudar."
-
-Por isso, dois sistemas podem aplicar o mesmo padrão de formas diferentes.
-
-## 3.3 Anatomia de um padrão
-
-| Elemento | Pergunta |
-|---|---|
-| Nome | Como chamamos esta solução? |
-| Problema | Qual dor recorrente ela resolve? |
-| Solução | Como os objetos colaboram? |
-| Consequências | O que melhora e o que fica mais caro? |
-
-A parte das consequências evita o uso mecânico de padrões.
-
-## 3.4 De onde vêm os padrões GoF?
-
-Os padrões mais conhecidos em orientação a objetos foram catalogados no livro:
-
-*Design Patterns: Elements of Reusable Object-Oriented Software*.
-
-Autores:
-
-- Erich Gamma;
-- Richard Helm;
-- Ralph Johnson;
-- John Vlissides.
-
-Eles ficaram conhecidos como **Gang of Four**, ou **GoF**.
-
-## 3.5 Mapa inicial dos padrões GoF
-
-![Mapa inicial dos padrões GoF](assets/mapa-gof.svg)
-
-## 3.6 Criacionais
-
-Padrões criacionais tratam da criação de objetos.
-
-> **Perguntas típicas**
-
-- quem deve criar este objeto?
-- como evitar acoplamento a classes concretas?
-- como construir objetos complexos?
-- como criar famílias de objetos relacionados?
-
-> **Exemplos**
-
-- Factory Method;
-- Abstract Factory;
-- Builder;
-- Prototype;
-- Singleton.
-
-## 3.7 Estruturais
-
-Padrões estruturais tratam da composição entre classes e objetos.
-
-> **Perguntas típicas**
-
-- como adaptar uma interface a outra?
-- como simplificar acesso a um subsistema?
-- como adicionar comportamento sem alterar uma classe original?
-- como tratar objetos individuais e grupos de forma uniforme?
-
-> **Exemplos**
-
-- Adapter;
-- Facade;
-- Decorator;
-- Composite;
-- Proxy.
-
-## 3.8 Comportamentais
-
-Padrões comportamentais tratam da colaboração entre objetos.
-
-> **Perguntas típicas**
-
-- como distribuir responsabilidades?
-- como trocar comportamento sem alterar o cliente?
-- como notificar vários objetos sobre uma mudança?
-- como encapsular uma solicitação?
-
-> **Exemplos**
-
-- Strategy;
-- Observer;
-- Command;
-- State;
-- Iterator.
-
-## 3.9 Importante sobre o mapa
-
-Hoje não vamos aprofundar cada padrão.
-
-A aula apresenta o território.
-
-Cada padrão será estudado no momento apropriado da disciplina.
-
-Por isso, nomes como Strategy, Observer, Factory Method e Decorator aparecem hoje como referências iniciais, não como conteúdo completo.
-
-## 3.10 Padrões no Java
-
-Você provavelmente já usou padrões sem nomeá-los.
-
-| Padrão | Exemplo comum em Java |
-|---|---|
-| Iterator | `for-each` em coleções |
-| Strategy | `Comparator` usado em ordenação |
-| Decorator | `BufferedReader` envolvendo outro `Reader` |
-| Builder | `StringBuilder`, `HttpRequest.Builder` |
-| Singleton | `Runtime.getRuntime()` |
-
-Reconhecer um padrão não significa aplicá-lo em todo lugar.
-
-## 3.11 Princípios de quê?
-
-Quando falamos em princípios nesta disciplina, estamos falando de:
-
-> princípios de design orientado a objetos.
-
-Eles ajudam a avaliar decisões de design.
-
-Padrões são soluções recorrentes.
-
-Princípios são critérios para julgar se uma solução faz sentido.
-
-## 3.12 Princípio 1: separar o que varia
-
-Pergunta central:
-
-> O que muda com frequência e o que tende a permanecer estável?
-
-> **Exemplos**
-
-- envio da mensagem: estável;
-- canal de envio: variável;
-- gerar relatório: estável;
-- formato do relatório: variável;
-- calcular total: estável;
-- política de desconto: variável.
-
-## 3.13 Princípio 2: depender de abstrações
-
-Depender diretamente de uma classe concreta pode dificultar troca e teste.
-
-```java
-class RelatorioService {
-    private final PdfExporter exporter = new PdfExporter();
-}
-```
-
-Aqui, `RelatorioService` conhece diretamente `PdfExporter`.
-
-Se amanhã o formato mudar, a classe tende a ser editada.
-
-## 3.14 Evoluindo com um contrato
-
-```java
-interface Exporter {
-    byte[] exportar(List<String> dados);
-}
-
-class RelatorioService {
-    private final Exporter exporter;
-
-    RelatorioService(Exporter exporter) {
-        this.exporter = exporter;
-    }
-}
-```
-
-Agora a classe depende de uma capacidade, não de uma implementação específica.
-
-## 3.15 Princípio 3: preferir composição quando fizer sentido
-
-Herança responde:
-
-> "Este objeto é um tipo de quê?"
-
-Composição responde:
-
-> "Este objeto usa quais comportamentos?"
-
-Use herança quando a substituição fizer sentido.
-
-Use composição quando quiser combinar ou trocar comportamentos.
-
-## 3.16 SOLID como vocabulário inicial
-
-SOLID é um conjunto de princípios de design orientado a objetos.
-
-Nesta aula, ele aparece como mapa inicial, não como assunto esgotado.
-
-| Letra | Nome | Ideia central |
-|---|---|---|
-| S | Single Responsibility | Uma classe deve ter um motivo principal para mudar. |
-| O | Open/Closed | Estender sem modificar repetidamente o fluxo estável. |
-| L | Liskov Substitution | Subtipos devem respeitar contratos. |
-| I | Interface Segregation | Interfaces específicas costumam ser mais claras. |
-| D | Dependency Inversion | Dependa de abstrações, não de classes concretas. |
-
-<hr>
-
-# Etapa 4
-
-## Exercício: proposta de evolução de design
-
-## 4.1 Exercício 2 - Propor uma evolução
-
-Retome um caso analisado na Etapa 2.
-
-Agora proponha uma melhoria de design.
-
-> **A proposta deve responder**
-
-- o que será separado?
-- qual parte fica mais estável?
-- qual parte passa a variar separadamente?
-- que abstração poderia existir?
-- que custo a solução adiciona?
-- vale a pena aplicar agora?
-
-## 4.2 Modelo de decisão
-
-```text
-Contexto:
-Qual problema observamos?
-
-Decisão:
-Que mudança de design propomos?
-
-Consequências positivas:
-O que melhora?
-
-Consequências negativas:
-O que fica mais complexo?
-
-> **Conclusão**
-Aplicar agora ou esperar?
-```
-
-Esse formato é inspirado em ADR: *Architecture Decision Record*.
-
-## 4.3 Solução exemplo: notificações
-
-```text
-Contexto:
-A central decide o canal usando if/else.
-
-Decisão:
-Separar um contrato para canais de notificação.
-
-Consequências positivas:
-Novos canais podem ser adicionados com menor impacto.
-Cada canal pode ser testado de forma mais isolada.
-
-Consequências negativas:
-A solução terá mais classes e mais indireção.
-
-> **Conclusão**
-Vale a pena se novos canais forem prováveis.
-```
-
-## 4.4 Solução exemplo: descontos
-
-```text
-Contexto:
-A classe Caixa decide a política de desconto por String.
-
-Decisão:
-Separar políticas de desconto em classes próprias ligadas por um contrato.
-
-Consequências positivas:
-Cada desconto fica isolado e testável.
-Novos descontos exigem menos alteração na classe Caixa.
-
-Consequências negativas:
-Há mais classes e ainda será preciso decidir qual política usar.
-
-> **Conclusão**
-Vale a pena se descontos mudam com frequência.
-```
-
-## 4.5 Solução exemplo: relatórios
-
-```text
-Contexto:
-RelatorioService depende diretamente de PdfExporter.
-
-Decisão:
-Criar um contrato Exporter e injetar a implementação desejada.
-
-Consequências positivas:
-Fica mais fácil trocar PDF por CSV, XLSX ou outro formato.
-Testes podem usar uma implementação falsa.
-
-Consequências negativas:
-O projeto ganha uma interface a mais.
-
-> **Conclusão**
-Vale a pena se houver mais de um formato real ou provável.
-```
-
-## 4.6 Discussão em grupo
-
-> **Prepare uma explicação curta**
-
-1. Qual foi o problema identificado?
-2. Qual mudança futura o grupo considerou provável?
-3. Que princípio de design orientou a proposta?
-4. Que custo a proposta adiciona?
-5. O grupo aplicaria agora ou esperaria?
-
-A qualidade da justificativa é mais importante que o nome do padrão.
-
-<hr>
-
-# Etapa 5
-
-## Finalização
-
-## 5.1 Quando não aplicar um padrão?
-
-Evite padrões quando:
-
-- o problema ainda não existe;
-- a variação é improvável;
-- a equipe não entende a abstração;
-- o código simples resolve bem;
-- o custo de leitura aumenta mais que o benefício.
-
-Simplicidade também é uma decisão de design.
-
-## 5.2 O que fica desta aula
-
-- Padrões respondem a problemas recorrentes de design.
-- Antes de escolher solução, precisamos diagnosticar a dor.
-- GoF organiza padrões em criacionais, estruturais e comportamentais.
-- Princípios de design OO ajudam a avaliar decisões.
-- SOLID é vocabulário de apoio, não uma etapa isolada da disciplina.
-- Bons projetos equilibram flexibilidade e simplicidade.
-
-## 5.3 Perguntas de fechamento
-
-1. O que é um padrão de projeto?
-2. Por que padrões têm consequências?
-3. Quais são os três grupos GoF?
-4. O que significa separar o que varia?
-5. Quando uma abstração pode atrapalhar?
-6. Que diferença existe entre diagnosticar um problema e aplicar um padrão?
-
-## 5.4 Preparação para a próxima aula
-
-Na próxima aula, começamos a aprofundar padrões específicos.
-
-Pergunta de transição:
-
-> Se criar objetos diretamente pode aumentar acoplamento, como podemos controlar melhor a criação?
-
-Esse é o tipo de problema tratado por padrões criacionais.
-
-## 5.5 Referências
-
-- Gamma, Helm, Johnson e Vlissides. *Design Patterns*.
-- Freeman e Robson. *Use a Cabeça! Padrões de Projeto*.
-- Robert C. Martin. *Agile Software Development: Principles, Patterns, and Practices*.
-- Joshua Bloch. *Effective Java*.
-- Refactoring Guru: https://refactoring.guru/pt-br
+Na solução de notificações, a central recebeu o canal já criado. Mas **quem deve escolher e construir esse objeto?** Quando essa decisão fica repetida ou complexa, podemos estudar outras alternativas para organizar a criação. Esse será o ponto de partida da **Aula 2 — Padrões Criacionais**.

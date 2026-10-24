@@ -35,6 +35,14 @@ Na pasta `aula1`, estão:
 - `aula01.md`: aula introdutória sobre pensamento de design antes dos padrões;
 - `assets/`: diagramas usados no material da Aula 1.
 
+Na pasta `aula2`, está:
+
+- `aula02.md`: padrões criacionais, Factory Method e análise crítica do Singleton.
+
+Na pasta `aula3`, está:
+
+- `aula03.md`: Builder, Prototype e construção de objetos complexos.
+
 ## Mensagem central
 
 Um bom projeto de software não é aquele que usa mais padrões.
