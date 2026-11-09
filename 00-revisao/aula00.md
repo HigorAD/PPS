@@ -16,7 +16,7 @@ O foco é prático:
 - interfaces;
 - coleções básicas.
 
-> **Importante:** esta aula não entra em padrões de projeto. Ela prepara a base para que os padrões façam sentido a partir da Aula 1.
+> **Importante:** esta aula não entra em padrões de projeto. Ela prepara a base para que os padrões façam sentido nas aulas seguintes.
 
 ## Como usar este material
 
